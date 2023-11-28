@@ -3,6 +3,7 @@
 var canvas;
 var gl;
 var program;
+var normalProgram, inversionProgram, digitalHalftoningProgram;
 
 var texture1;
 
@@ -74,14 +75,18 @@ function accessWebcam(video) {
 //--------------------------------------------
 
 window.onload = function init() {
-
     canvas = document.getElementById( "gl-canvas" );
-
     gl = canvas.getContext('webgl2');
     if (!gl) { alert( "WebGL 2.0 isn't available" ); }
+    gl.viewport(0, 0, 700, 700);
+    gl.clearColor(0.5, 0.5, 0.5, 1.0);
 
     setup();    // access webcam 
-    
+
+    normalProgram = initShaders(gl, "vertex-shader", "normal-fragment-shader");
+    inversionProgram = initShaders(gl, "vertex-shader", "inversion-fragment-shader");
+    digitalHalftoningProgram = initShaders(gl, "vertex-shader", "digital-halftoning-fragment-shader");
+
     // Emtpy texture to hold video frame as texture
     texture1 = gl.createTexture();
     gl.activeTexture( gl.TEXTURE0);
@@ -93,13 +98,18 @@ window.onload = function init() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
     //initilize the shaders
-    program = initShaders(gl, "vertex-shader", "inversion-fragment-shader");
-    gl.useProgram( program);
+    // program = initShaders(gl, "vertex-shader", "normal-fragment-shader");
+
+    program = normalProgram;
+
+    gl.useProgram(program);
 
     // Download vertices
     var vbuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vbuffer);
     gl.bufferData(gl.ARRAY_BUFFER,   square_vertices, gl.STATIC_DRAW);
+
+
     positionLoc = gl.getAttribLocation( program, "aPosition");
     gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(positionLoc);
@@ -116,8 +126,29 @@ window.onload = function init() {
     textureloc = gl.getUniformLocation(program, "texturevid");
     gl.uniform1i( textureloc, 0);  // Set to texture unit 0
 
-    gl.viewport(0, 0, 700, 700);
-    gl.clearColor(0.5, 0.5, 0.5, 1.0);
+
+
+    // document.getElementById('shaderSelector').addEventListener('change', function (event) {
+    //     const selectedIndex = event.target.value;
+    //     switch (selectedIndex) {
+    //       case '0':
+    //         console.log(selectedIndex)
+    //         // render(normalProgram);
+    //         break;
+    //       case '1':
+    //         console.log(selectedIndex)
+    //         // render(inversionProgram);
+    //         break;
+    //       case '2':
+    //         console.log(selectedIndex)
+    //         // render(digitalHalftoningProgram);
+    //         break;
+    //       default:
+    //         // render(normalProgram);
+    //         break;
+    //     }
+    //   });
+
 
     render();
     

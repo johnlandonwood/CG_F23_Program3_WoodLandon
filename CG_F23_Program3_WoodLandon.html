@@ -18,7 +18,7 @@
     }
 </script>
 
-<script id="fragment-shader" type="x-shader/x-fragment">
+<script id="normal-fragment-shader" type="x-shader/x-fragment">
     #version 300 es
     
     precision mediump float;
@@ -57,12 +57,45 @@ void main()
 </script>
 
 
+<script id="digital-halftoning-fragment-shader" type ="x-shader/x-fragment">
+#version 300 es
+
+precision mediump float;
+
+in vec2 vTexCoord;
+uniform sampler2D texturevid;
+
+out vec4 fColor;
+
+void main()
+{
+    vec4 texColor = texture(texturevid, vTexCoord);
+    
+    // Convert color to grayscale using luminance (you can use other methods for grayscale conversion)
+    float gray = dot(texColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    
+    // Threshold-based halftoning: if grayscale value > 0.5, set to white; otherwise, set to black
+    float threshold = 0.5;
+    float halftoneValue = step(threshold, gray);
+    
+    // Output black or white depending on the halftoneValue
+    fColor = vec4(vec3(halftoneValue), texColor.a);
+}    
+</script>
+
+
 
 
 <video id="webcamVideo" style="display: none;"></video>
 
 <body>
     <canvas id="gl-canvas" width="700" height="700"> </canvas> 
+    <br/>
+    <select id="shaderSelector" selected="0">
+        <option value="0">No effect</option>
+        <option value="1">Inversion Shader</option>
+        <option value="2">Digital Halftoning Shader</option>
+    </select>
 </body>
 
 <script src="../Common/initShaders.js"></script>
