@@ -2,36 +2,32 @@
 <html>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
-    #version 300 es
-    
-    in vec4 aPosition;
-    in vec2 aTexCoord;
-    
-    out vec2 vTexCoord;
-    
-    void main()
-    {
-    
+#version 300 es
+
+in vec4 aPosition;
+in vec2 aTexCoord;
+
+out vec2 vTexCoord;
+
+void main() { 
     gl_Position = aPosition;
     vTexCoord = aTexCoord;
-    
-    }
+}
 </script>
 
 <script id="normal-fragment-shader" type="x-shader/x-fragment">
-    #version 300 es
-    
-    precision mediump float;
-    
-    in vec2 vTexCoord;
-    uniform sampler2D texturevid;
+#version 300 es
 
-    out vec4 fColor;
-  
-    void main()
-    {
-        fColor = vec4( texture( texturevid, vTexCoord ).rgb, 1. );
-    }
+precision mediump float;
+
+in vec2 vTexCoord;
+uniform sampler2D texturevid;
+
+out vec4 fColor;
+
+void main() {
+    fColor = vec4( texture( texturevid, vTexCoord ).rgb, 1. );
+}
 </script>
 
 <script id="inversion-fragment-shader" type ="x-shader/x-fragment">
@@ -44,8 +40,7 @@ uniform sampler2D texturevid;
 
 out vec4 fColor;
 
-void main()
-{
+void main() {
     vec4 texColor = texture(texturevid, vTexCoord);
     
     // Invert the colors by subtracting each color component from 1.0
@@ -55,7 +50,6 @@ void main()
     fColor = vec4(invertedColor, texColor.a);
 }
 </script>
-
 
 <script id="digital-halftoning-fragment-shader" type ="x-shader/x-fragment">
 #version 300 es
@@ -67,8 +61,7 @@ uniform sampler2D texturevid;
 
 out vec4 fColor;
 
-void main()
-{
+void main() {
     vec4 texColor = texture(texturevid, vTexCoord);
     
     // Convert color to grayscale using luminance (you can use other methods for grayscale conversion)
@@ -83,16 +76,14 @@ void main()
 }    
 </script>
 
-
-
-
 <video id="webcamVideo" style="display: none;"></video>
 
 <body>
     <canvas id="gl-canvas" width="700" height="700"> </canvas> 
     <br/>
-    <select id="shaderSelector" selected="0">
-        <option value="0">No effect</option>
+    <p>Select fragment shader effect: </p>
+    <select id="shaderSelector">
+        <option value="0" selected="selected">No effect</option>
         <option value="1">Inversion Shader</option>
         <option value="2">Digital Halftoning Shader</option>
     </select>
