@@ -5,7 +5,7 @@ var gl;
 
 // Program and texture variables
 var program;
-var normalProgram, inversionProgram, digitalHalftoningProgram;
+var normalProgram, inversionProgram, digitalHalftoningProgram, distortionProgram, fisheyeProgram;
 var texture1;
 
 // Attribute and uniform locations
@@ -82,6 +82,8 @@ window.onload = function init() {
     normalProgram = initShaders(gl, "vertex-shader", "normal-fragment-shader");
     inversionProgram = initShaders(gl, "vertex-shader", "inversion-fragment-shader");
     digitalHalftoningProgram = initShaders(gl, "vertex-shader", "digital-halftoning-fragment-shader");
+    distortionProgram = initShaders(gl, "vertex-shader", "distortion-fragment-shader");
+    fisheyeProgram = initShaders(gl, "vertex-shader", "fisheye-fragment-shader")
 
     // Emtpy texture to hold video frame as texture
     texture1 = gl.createTexture();
@@ -123,6 +125,7 @@ window.onload = function init() {
     // Event listener to set which program is the current program
     document.getElementById('shaderSelector').addEventListener('change', function (event) {
         const selectedIndex = parseInt(event.target.value); // Get the selected index as an integer
+        console.log("Selected shader index: " + selectedIndex)
         switch (selectedIndex) {
             case 0:
                 program = normalProgram;
@@ -133,6 +136,11 @@ window.onload = function init() {
             case 2:
                 program = digitalHalftoningProgram;
                 break;
+            case 3:
+                program = distortionProgram;
+                break;
+            case 4:
+                program = fisheyeProgram;
             default:
                 program = normalProgram;
                 break;
