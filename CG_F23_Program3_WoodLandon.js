@@ -5,7 +5,8 @@ var gl;
 
 // Program and texture variables
 var program;
-var normalProgram, inversionProgram, digitalHalftoningProgram, distortionProgram, fisheyeProgram;
+var normalProgram, inversionProgram, digitalHalftoningProgram;
+var squigglyProgram, fisheyeProgram, duplicationProgram, barrelProgram, pincushionProgram;
 var texture1;
 
 // Attribute and uniform locations
@@ -82,8 +83,12 @@ window.onload = function init() {
     normalProgram = initShaders(gl, "vertex-shader", "normal-fragment-shader");
     inversionProgram = initShaders(gl, "vertex-shader", "inversion-fragment-shader");
     digitalHalftoningProgram = initShaders(gl, "vertex-shader", "digital-halftoning-fragment-shader");
-    distortionProgram = initShaders(gl, "vertex-shader", "distortion-fragment-shader");
+    squigglyProgram = initShaders(gl, "vertex-shader", "squiggly-fragment-shader");
     fisheyeProgram = initShaders(gl, "vertex-shader", "fisheye-fragment-shader")
+    duplicationProgram = initShaders(gl, "vertex-shader", "duplication-fragment-shader")
+    barrelProgram = initShaders(gl, "vertex-shader", "barrel-distortion-fragment-shader")
+    // pincushionProgram = initShaders(gl, "vertex-shader", "pincushion-distortion-fragment-shader")
+
 
     // Emtpy texture to hold video frame as texture
     texture1 = gl.createTexture();
@@ -137,10 +142,20 @@ window.onload = function init() {
                 program = digitalHalftoningProgram;
                 break;
             case 3:
-                program = distortionProgram;
+                program = squigglyProgram;
                 break;
             case 4:
                 program = fisheyeProgram;
+                break;
+            case 5:
+                program = duplicationProgram;
+                break;
+            case 6:
+                program = barrelProgram;
+                break;
+            case 7: 
+                program = pincushionProgram;
+                break;
             default:
                 program = normalProgram;
                 break;

@@ -67,8 +67,8 @@ void main() {
     // Convert color to grayscale using luminance (you can use other methods for grayscale conversion)
     float gray = dot(texColor.rgb, vec3(0.2126, 0.7152, 0.0722));
     
-    // Threshold-based halftoning: if grayscale value > 0.5, set to white; otherwise, set to black
-    float threshold = 0.5;
+    // Threshold-based halftoning: if grayscale value > 0.3, set to white; otherwise, set to black
+    float threshold = 0.3;
     float halftoneValue = step(threshold, gray);
     
     // Output black or white depending on the halftoneValue
@@ -76,7 +76,7 @@ void main() {
 }    
 </script>
 
-<script id="distortion-fragment-shader" type="x-shader/x-fragment">
+<script id="squiggly-fragment-shader" type="x-shader/x-fragment">
 #version 300 es
 
 precision mediump float;
@@ -88,7 +88,7 @@ out vec4 fColor;
 
 void main() {
     // Retrieve the texture color at the modified texture coordinates
-    vec2 distortedTexCoord = vTexCoord + vec2(sin(vTexCoord.y * 30.0), cos(vTexCoord.x * 20.0)) * 0.02;
+    vec2 distortedTexCoord = vTexCoord + vec2(sin(vTexCoord.y * 30.0), cos(vTexCoord.x * 30.0)) * 0.02;
     vec4 texColor = texture(texturevid, distortedTexCoord);
     fColor = texColor;
 }
@@ -115,7 +115,7 @@ void main() {
     float distance = length(diff);
 
     // Define the radius of the fish-eye effect
-    float radius = 0.5;
+    float radius = 0.9;
 
     // Calculate the ratio based on the distance and radius
     float ratio = 2.0 * distance / radius;
@@ -130,6 +130,87 @@ void main() {
 }
 </script>
 
+<script id="duplication-fragment-shader" type="x-shader/x-fragment">
+#version 300 es
+
+precision mediump float;
+
+in vec2 vTexCoord;
+uniform sampler2D texturevid;
+
+out vec4 fColor;
+
+void main() {
+    // Retrieve the texture color at the modified texture coordinates
+    vec2 distortedTexCoord = vTexCoord + vec2(sin(vTexCoord.y * 30.0), cos(vTexCoord.x * 30.0)) * 0.25;
+    vec4 texColor = texture(texturevid, distortedTexCoord);
+    fColor = texColor;
+}
+</script>
+
+<script id="barrel-distortion-fragment-shader" type="x-shader/x-fragment">
+#version 300 es
+
+precision mediump float;
+
+in vec2 vTexCoord;
+uniform sampler2D texturevid;
+
+out vec4 fColor;
+
+void main() {
+    vec2 normTexCoord = (vTexCoord - 0.5) * 2.0; // Normalize texture coordinates to [-1, 1] range
+
+    float dist = length(normTexCoord);
+    vec2 distortion = normTexCoord * (1.0 + 2.0 * dist * dist); // Adjust the distortion factor (0.3 here)
+
+    vec2 distortedTexCoord = 0.5 * (distortion + 1.0); // Denormalize texture coordinates
+
+    vec4 texColor = texture(texturevid, distortedTexCoord);
+    fColor = texColor;
+}
+</script>
+
+<!-- <script id="pincushion-distortion-fragment-shader" type="x-shader/x-fragment">
+#version 300 es
+
+precision mediump float;
+
+in vec2 vTexCoord;
+uniform sampler2D texturevid;
+uniform vec2 resolution;  // Canvas size (width, height)
+uniform float distortionStrength; // Strength of the pincushion distortion effect
+
+out vec4 fColor;
+
+void main() {
+    // Get the center of the screen
+    vec2 center = resolution / 2.0;
+
+    // Normalize the texture coordinates to the range [-1, 1]
+    vec2 normTexCoord = 2.0 * vTexCoord - 1.0;
+
+    // Calculate the vector from the center
+    vec2 fromCenter = normTexCoord - center;
+
+    // Calculate the distance from the center
+    float distance = length(fromCenter);
+
+    // Apply pincushion distortion effect
+    vec2 distortedTexCoord = center + (fromCenter * pow(distance, distortionStrength) / length(center));
+
+    // Convert back to texture coordinates
+    vec2 finalTexCoord = 0.5 * (distortedTexCoord + 1.0);
+
+    // Sample the video texture
+    vec4 texColor = texture(texturevid, finalTexCoord);
+
+    fColor = texColor;
+}
+</script> -->
+
+
+
 <video id="webcamVideo" style="display: none;"></video>
 
 <body>
@@ -140,8 +221,11 @@ void main() {
         <option value="0" selected="selected">No effect</option>
         <option value="1">Inversion Shader</option>
         <option value="2">Digital Halftoning Shader</option>
-        <option value="3">Squiggly Sin/Cos Shader</option>
+        <option value="3">Squiggly Shader</option>
         <option value="4">Fisheye Lens Shader</option>
+        <option value="5">Duplication Shader</option>
+        <option value="6">Barrel Distortion Shader</option>
+        <!-- <option value="7">Pincushion Distortion Shader</option> -->
     </select>
 </body>
 
