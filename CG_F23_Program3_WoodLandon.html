@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 
+<!-- Vertex shader -  the same for all fragment shaders. -->
 <script id="vertex-shader" type="x-shader/x-vertex">
 #version 300 es
 
@@ -15,6 +16,7 @@ void main() {
 }
 </script>
 
+<!-- Normal fragment shader with no image processing effects. -->
 <script id="normal-fragment-shader" type="x-shader/x-fragment">
 #version 300 es
 
@@ -30,6 +32,7 @@ void main() {
 }
 </script>
 
+<!-- This shader inverts the colors of each pixel. -->
 <script id="inversion-fragment-shader" type ="x-shader/x-fragment">
 #version 300 es
 
@@ -42,80 +45,70 @@ out vec4 fColor;
 
 void main() {
     vec4 texColor = texture(texturevid, vTexCoord);
-    
+
     // Invert the colors by subtracting each color component from 1.0
     vec3 invertedColor = vec3(1.0) - texColor.rgb;
-    
-    // Create the final color by combining alpha and inverted RGB
     fColor = vec4(invertedColor, texColor.a);
 }
 </script>
 
+<!-- This shader performs threshold-based digital halftoning by converting pixels to black or white based on their grayscale value. -->
 <script id="digital-halftoning-fragment-shader" type ="x-shader/x-fragment">
 #version 300 es
-
 precision mediump float;
 
 in vec2 vTexCoord;
 uniform sampler2D texturevid;
-
+uniform float threshold;
 out vec4 fColor;
 
 void main() {
     vec4 texColor = texture(texturevid, vTexCoord);
     
-    // Convert color to grayscale using luminance (you can use other methods for grayscale conversion)
-    float gray = dot(texColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-    
-    // Threshold-based halftoning: if grayscale value > 0.3, set to white; otherwise, set to black
-    float threshold = 0.3;
+    // Convert color of pixel to grayscale by averaging red, green and blue values for the pixel
+    float gray = (texColor.r + texColor.g + texColor.b) / 3.0;
+
+    // If grayscale value > threshold, set to white; otherwise, set to black
     float halftoneValue = step(threshold, gray);
-    
-    // Output black or white depending on the halftoneValue
     fColor = vec4(vec3(halftoneValue), texColor.a);
 }    
 </script>
 
+ <!-- This shader distorts the way the video's texture coordinates using sin and cos functions. -->
 <script id="squiggly-fragment-shader" type="x-shader/x-fragment">
 #version 300 es
-
 precision mediump float;
 
 in vec2 vTexCoord;
 uniform sampler2D texturevid;
-
+uniform float angleX;
+uniform float angleY;
 out vec4 fColor;
 
 void main() {
-    // Retrieve the texture color at the modified texture coordinates
-    vec2 distortedTexCoord = vTexCoord + vec2(sin(vTexCoord.y * 30.0), cos(vTexCoord.x * 30.0)) * 0.02;
+    vec2 distortedTexCoord = vTexCoord + vec2(sin(vTexCoord.y * angleY), cos(vTexCoord.x * angleX)) * 0.02;
     vec4 texColor = texture(texturevid, distortedTexCoord);
     fColor = texColor;
 }
 </script>
 
+<!-- This fragment shader performs an equidistant fisheye projection. -->
 <script id="fisheye-fragment-shader" type="x-shader/x-fragment">
 #version 300 es
-
 precision mediump float;
 
 in vec2 vTexCoord;
 uniform sampler2D texturevid;
-
+uniform float radius;
 out vec4 fColor;
 
 void main() {
     // Define the center point of the image as the origin (0.5, 0.5)
     vec2 center = vec2(0.5, 0.5);
 
-    // Calculate the vector from the center to the current texture coordinate
+    // Calculate the distance from the center for the current texture coordinate
     vec2 diff = vTexCoord - center;
-
-    // Calculate the distance from the center
     float distance = length(diff);
-
-    // Define the radius of the fish-eye effect
-    float radius = 0.9;
 
     // Calculate the ratio based on the distance and radius
     float ratio = 2.0 * distance / radius;
@@ -125,44 +118,45 @@ void main() {
 
     // Retrieve the color from the distorted texture coordinates
     vec4 texColor = texture(texturevid, fishEyeCoords);
-
     fColor = texColor;
 }
 </script>
 
+<!-- This shader is a special case of the squiggly shader where we modify the scale factor instead of the angles,
+creating a sort of "duplication" effect where the user's picture gets split off into smaller squares. -->
 <script id="duplication-fragment-shader" type="x-shader/x-fragment">
 #version 300 es
-
 precision mediump float;
 
 in vec2 vTexCoord;
 uniform sampler2D texturevid;
-
+uniform float scaleFactor;
 out vec4 fColor;
 
 void main() {
-    // Retrieve the texture color at the modified texture coordinates
-    vec2 distortedTexCoord = vTexCoord + vec2(sin(vTexCoord.y * 30.0), cos(vTexCoord.x * 30.0)) * 0.25;
+    vec2 distortedTexCoord = vTexCoord + vec2(sin(vTexCoord.y * 45.0), cos(vTexCoord.x * 45.0)) * scaleFactor;
     vec4 texColor = texture(texturevid, distortedTexCoord);
     fColor = texColor;
 }
 </script>
 
+<!-- This fragment shader applies a barrel distortion to the video frame. -->
 <script id="barrel-distortion-fragment-shader" type="x-shader/x-fragment">
 #version 300 es
-
 precision mediump float;
 
 in vec2 vTexCoord;
 uniform sampler2D texturevid;
-
+uniform float distortionFactor;
 out vec4 fColor;
 
 void main() {
-    vec2 normTexCoord = (vTexCoord - 0.5) * 2.0; // Normalize texture coordinates to [-1, 1] range
+
+    // Normalize texture coordinates to [-1, 1] range
+    vec2 normTexCoord = (vTexCoord - 0.5) * 2.0; 
 
     float dist = length(normTexCoord);
-    vec2 distortion = normTexCoord * (1.0 + 2.0 * dist * dist); // Adjust the distortion factor (0.3 here)
+    vec2 distortion = normTexCoord * (1.0 + distortionFactor * dist * dist);
 
     vec2 distortedTexCoord = 0.5 * (distortion + 1.0); // Denormalize texture coordinates
 
@@ -170,46 +164,6 @@ void main() {
     fColor = texColor;
 }
 </script>
-
-<!-- <script id="pincushion-distortion-fragment-shader" type="x-shader/x-fragment">
-#version 300 es
-
-precision mediump float;
-
-in vec2 vTexCoord;
-uniform sampler2D texturevid;
-uniform vec2 resolution;  // Canvas size (width, height)
-uniform float distortionStrength; // Strength of the pincushion distortion effect
-
-out vec4 fColor;
-
-void main() {
-    // Get the center of the screen
-    vec2 center = resolution / 2.0;
-
-    // Normalize the texture coordinates to the range [-1, 1]
-    vec2 normTexCoord = 2.0 * vTexCoord - 1.0;
-
-    // Calculate the vector from the center
-    vec2 fromCenter = normTexCoord - center;
-
-    // Calculate the distance from the center
-    float distance = length(fromCenter);
-
-    // Apply pincushion distortion effect
-    vec2 distortedTexCoord = center + (fromCenter * pow(distance, distortionStrength) / length(center));
-
-    // Convert back to texture coordinates
-    vec2 finalTexCoord = 0.5 * (distortedTexCoord + 1.0);
-
-    // Sample the video texture
-    vec4 texColor = texture(texturevid, finalTexCoord);
-
-    fColor = texColor;
-}
-</script> -->
-
-
 
 <video id="webcamVideo" style="display: none;"></video>
 
@@ -225,8 +179,21 @@ void main() {
         <option value="4">Fisheye Lens Shader</option>
         <option value="5">Duplication Shader</option>
         <option value="6">Barrel Distortion Shader</option>
-        <!-- <option value="7">Pincushion Distortion Shader</option> -->
     </select>
+
+    <p>Digital Halftoning Threshold:</p>
+    0<input id="thresholdSlider" type="range" min="0" max="1" step="0.01" value="0.3" >1
+    <p>Squiggly X Distortion Angle:</p>
+    0<input id="angleXSlider" type="range" min="0" max="360" step="1" value="30" >360
+    <p>Squiggly Y Distortion Angle:</p>
+    0<input id="angleYSlider" type="range" min="0" max="360" step="1" value="30" >360
+    <p>Fisheye Lens Radius</p>
+    0<input id="fisheyeSlider" type="range" min="0" max="1.5" value="0.9" step="0.01" >1.5
+    <p>Duplication Scale Factor</p>
+    0<input id="duplicationSlider" type="range" min="0" max="1" value="0.25" step="0.01" >1
+    <p>Barrel Distortion Factor</p>
+    0<input id="barrelDistortionSlider" type="range" min="0" max="6" value="2.0" step="0.01" >6
+
 </body>
 
 <script src="../Common/initShaders.js"></script>
