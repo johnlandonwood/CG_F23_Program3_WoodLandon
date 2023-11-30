@@ -167,6 +167,39 @@ void main() {
 }
 </script>
 
+<script id="combined-fragment-shader" type="x-shader/x-fragment">
+#version 300 es
+
+precision mediump float;
+
+in vec2 vTexCoord;
+uniform sampler2D texturevid;
+
+uniform float threshold; // Control parameter for digital halftoning
+uniform float angle;     // Control parameter for squiggly effect
+
+out vec4 fColor;
+
+void main() {
+    // Digital Halftoning
+    vec4 texColor = texture(texturevid, vTexCoord);
+    float gray = dot(texColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    float threshold = 0.5;
+    float halftoneValue = step(threshold, gray);
+    vec3 halftoneColor = vec3(halftoneValue);
+
+    // Squiggly Effect
+    vec2 distortedTexCoord = vTexCoord + vec2(sin(vTexCoord.y * 30.0), cos(vTexCoord.x * 30.0)) * 0.02;
+    vec4 squigglyColor = texture(texturevid, distortedTexCoord);
+
+    // Combine both effects (you can adjust how they are mixed)
+    vec3 finalColor = mix(halftoneColor, squigglyColor.rgb, 0.5); // Adjust the mix ratio if needed
+
+    fColor = vec4(finalColor, 1.0);
+}
+</script>
+    
+
 <video id="webcamVideo" style="display: none;"></video>
 
 <body>
@@ -181,6 +214,7 @@ void main() {
         <option value="4">Fisheye Lens Shader</option>
         <option value="5">Duplication Shader</option>
         <option value="6">Barrel Distortion Shader</option>
+        <option value="7">Combined Shader</option>
     </select>
 
     <p>Digital Halftoning Threshold:</p>

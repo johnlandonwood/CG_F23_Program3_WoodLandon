@@ -7,6 +7,7 @@ var program;
 var normalProgram, inversionProgram, digitalHalftoningProgram;
 var squigglyProgram, fisheyeProgram, duplicationProgram, barrelProgram, pincushionProgram;
 var texture1;
+var combinedProgram;
 
 // Attribute and uniform locations and slider values
 var positionLoc, texCoordLoc; 
@@ -98,6 +99,7 @@ window.onload = function init() {
     fisheyeProgram = initShaders(gl, "vertex-shader", "fisheye-fragment-shader")
     duplicationProgram = initShaders(gl, "vertex-shader", "duplication-fragment-shader")
     barrelProgram = initShaders(gl, "vertex-shader", "barrel-distortion-fragment-shader")
+    combinedProgram = initShaders(gl, "vertex-shader", "combined-fragment-shader")
 
     // Emtpy texture to hold video frame as texture
     texture1 = gl.createTexture();
@@ -162,6 +164,9 @@ window.onload = function init() {
             case 6:
                 program = barrelProgram;
                 break;
+            case 7:
+                program = combinedProgram;
+                break;
             default:
                 program = normalProgram;
                 break;
@@ -200,6 +205,9 @@ window.onload = function init() {
             barrelDistortionValue = parseFloat(barrelDistortionSlider.value);
             barrelDistortionLoc = gl.getUniformLocation(program, "distortionFactor");
             gl.uniform1f(barrelDistortionLoc, barrelDistortionValue);
+        }
+        else if (selectedIndex === 7) {
+
         }
     });
 
