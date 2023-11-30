@@ -1,5 +1,4 @@
 "use strict";
-
 var canvas;
 var gl;
 
@@ -9,11 +8,17 @@ var normalProgram, inversionProgram, digitalHalftoningProgram;
 var squigglyProgram, fisheyeProgram, duplicationProgram, barrelProgram, pincushionProgram;
 var texture1;
 
-// Attribute and uniform locations
+// Attribute and uniform locations and slider values
 var positionLoc, texCoordLoc; 
 var textureloc;                 
+var thresholdLoc, thresholdValue;
+var angleXLoc, angleXValue;
+var angleYLoc, angleYValue;
+var fisheyeRadiusLoc, fisheyeRadiusValue;
+var duplicationScaleFactorLoc, duplicationScaleFactorValue;
+var barrelDistortionLoc, barrelDistortionValue;
 
-// Get video element from HTML
+// Variables to retrieve HTML elements
 var video = document.querySelector('video'); 
 var shaderSelector = document.getElementById('shaderSelector');
 var thresholdSlider = document.getElementById('thresholdSlider');
@@ -162,116 +167,88 @@ window.onload = function init() {
                 break;
         }
 
-    document.getElementById('thresholdSlider').addEventListener('input', function (event) {
-        if (program === digitalHalftoningProgram) {
-            var thresholdValue = parseFloat(event.target.value); // Get the slider value
-            // gl.useProgram(program);
-            var thresholdLoc = gl.getUniformLocation(program, "threshold");
-            gl.uniform1f(thresholdLoc, thresholdValue); // Set the threshold value in the shader
-            // render();
-        }
-    });
-
-    document.getElementById('angleXSlider').addEventListener('input', function (event) {
-        if (program === squigglyProgram) {
-            var angleXValue = parseFloat(event.target.value); // Get the X angle slider value
-            // gl.useProgram(program);
-            var angleXLoc = gl.getUniformLocation(program, "angleX");
-            gl.uniform1f(angleXLoc, angleXValue); // Set the X angle value in the shader
-            // render();
-        }
-    });
-
-    // Event listener for the Y angle slider to update the Y angle value dynamically
-    document.getElementById('angleYSlider').addEventListener('input', function (event) {
-        if (program === squigglyProgram) {
-            var angleYValue = parseFloat(event.target.value); // Get the Y angle slider value
-            // gl.useProgram(program);
-            var angleYLoc = gl.getUniformLocation(program, "angleY");
-            gl.uniform1f(angleYLoc, angleYValue); // Set the Y angle value in the shader
-            // render();
-        }
-    });
-
-    // Event listener for the Y angle slider to update the Y angle value dynamically
-    document.getElementById('fisheyeSlider').addEventListener('input', function (event) {
-        if (program === fisheyeProgram) {
-            var fisheyeRadius = parseFloat(event.target.value); // Get the Y angle slider value
-            // gl.useProgram(program);
-            var fisheyeRadiusLoc = gl.getUniformLocation(program, "radius");
-            gl.uniform1f(fisheyeRadiusLoc, fisheyeRadius); // Set the Y angle value in the shader
-            // render();
-        }
-    });
-
-    // Event listener for the Y angle slider to update the Y angle value dynamically
-    document.getElementById('duplicationSlider').addEventListener('input', function (event) {
-        if (program === duplicationProgram) {
-            var duplicationScaleFactorValue = parseFloat(event.target.value); // Get the Y angle slider value
-            // gl.useProgram(program);
-            var duplicationScaleFactorLoc = gl.getUniformLocation(program, "scaleFactor");
-            gl.uniform1f(duplicationScaleFactorLoc, duplicationScaleFactorValue); // Set the Y angle value in the shader
-            // render();
-        }
-    });
-
-    // Event listener for the Y angle slider to update the Y angle value dynamically
-    document.getElementById('barrelDistortionSlider').addEventListener('input', function (event) {
-        if (program === barrelProgram) {
-            var barrelDistortionValue = parseFloat(event.target.value); // Get the Y angle slider value
-            // gl.useProgram(program);
-            var barrelDistortionLoc = gl.getUniformLocation(program, "distortionFactor");
-            gl.uniform1f(barrelDistortionLoc, barrelDistortionValue); // Set the Y angle value in the shader
-            // render();
-        }
-    });
-
-
+        // Use the selected program and set the video frame texture
         gl.useProgram(program);
         textureloc = gl.getUniformLocation(program, "texturevid");
         gl.uniform1i(textureloc, 0);
         
+        // If an image processing effect was selected, apply the user's slider input to the corresponding fragment shader's uniform
         if (selectedIndex === 2) {
-            var thresholdValue = parseFloat(thresholdSlider.value); // Get the slider value
-
-            var thresholdLoc = gl.getUniformLocation(program, "threshold");
-            gl.uniform1f(thresholdLoc, thresholdValue); // Set the threshold value in the shader
+            thresholdValue = parseFloat(thresholdSlider.value);
+            thresholdLoc = gl.getUniformLocation(program, "threshold");
+            gl.uniform1f(thresholdLoc, thresholdValue);
         }
         else if (selectedIndex === 3) {
-            var angleXValue = parseFloat(angleXSlider.value); // Get the X angle slider value
-            var angleYValue = parseFloat(angleYSlider.value); // Get the Y angle slider value
-            // gl.useProgram(program);
-            var angleXLoc = gl.getUniformLocation(program, "angleX");
-            var angleYLoc = gl.getUniformLocation(program, "angleY");
-            gl.uniform1f(angleXLoc, angleXValue); // Set the X angle value in the shader
-            gl.uniform1f(angleYLoc, angleYValue); // Set the Y angle value in the shader
+            angleXValue = parseFloat(angleXSlider.value);
+            angleYValue = parseFloat(angleYSlider.value);
+            angleXLoc = gl.getUniformLocation(program, "angleX");
+            angleYLoc = gl.getUniformLocation(program, "angleY");
+            gl.uniform1f(angleXLoc, angleXValue);
+            gl.uniform1f(angleYLoc, angleYValue);
         }
         else if (selectedIndex === 4) {
-            var fisheyeRadiusValue = parseFloat(fisheyeSlider.value); // Get the X angle slider value
-            // gl.useProgram(program);
-            var fisheyeRadiusLoc = gl.getUniformLocation(program, "radius");
-            gl.uniform1f(fisheyeRadiusLoc, fisheyeRadiusValue); // Set the Y angle value in the shader
+            fisheyeRadiusValue = parseFloat(fisheyeSlider.value);
+            fisheyeRadiusLoc = gl.getUniformLocation(program, "radius");
+            gl.uniform1f(fisheyeRadiusLoc, fisheyeRadiusValue);
         }
         else if (selectedIndex === 5) {
-            var duplicationScaleFactorValue = parseFloat(duplicationSlider.value); // Get the X angle slider value
-            // gl.useProgram(program);
-            var duplicationScaleFactorLoc = gl.getUniformLocation(program, "scaleFactor");
-            gl.uniform1f(duplicationScaleFactorLoc, duplicationScaleFactorValue); // Set the Y angle value in the shader
+            duplicationScaleFactorValue = parseFloat(duplicationSlider.value);
+            duplicationScaleFactorLoc = gl.getUniformLocation(program, "scaleFactor");
+            gl.uniform1f(duplicationScaleFactorLoc, duplicationScaleFactorValue);
         }
         else if (selectedIndex === 6) {
-            var barrelDistortionValue = parseFloat(barrelDistortionSlider.value); // Get the X angle slider value
-            // gl.useProgram(program);
-            var barrelDistortionLoc = gl.getUniformLocation(program, "distortionFactor");
-            gl.uniform1f(barrelDistortionLoc, barrelDistortionValue); // Set the Y angle value in the shader
+            barrelDistortionValue = parseFloat(barrelDistortionSlider.value);
+            barrelDistortionLoc = gl.getUniformLocation(program, "distortionFactor");
+            gl.uniform1f(barrelDistortionLoc, barrelDistortionValue);
         }
-
-        // gl.useProgram(program);
-        // textureloc = gl.getUniformLocation(program, "texturevid");
-        // gl.uniform1i(textureloc, 0);
-
-        render();
     });
-    
+
+    // Event listeners for input on fragment shader parameters
+    thresholdSlider.addEventListener('input', function (event) {
+        if (program === digitalHalftoningProgram) {
+            thresholdValue = parseFloat(event.target.value);
+            thresholdLoc = gl.getUniformLocation(program, "threshold");
+            gl.uniform1f(thresholdLoc, thresholdValue);
+        }
+    });
+    angleXSlider.addEventListener('input', function (event) {
+        if (program === squigglyProgram) {
+            angleXValue = parseFloat(event.target.value);
+            angleXLoc = gl.getUniformLocation(program, "angleX");
+            gl.uniform1f(angleXLoc, angleXValue);
+        }
+    });
+    angleYSlider.addEventListener('input', function (event) {
+        if (program === squigglyProgram) {
+            angleYValue = parseFloat(event.target.value);
+            angleYLoc = gl.getUniformLocation(program, "angleY");
+            gl.uniform1f(angleYLoc, angleYValue);
+        }
+    });
+    fisheyeSlider.addEventListener('input', function (event) {
+        if (program === fisheyeProgram) {
+            fisheyeRadiusValue = parseFloat(event.target.value);
+            fisheyeRadiusLoc = gl.getUniformLocation(program, "radius");
+            gl.uniform1f(fisheyeRadiusLoc, fisheyeRadiusValue);
+        }
+    });
+    duplicationSlider.addEventListener('input', function (event) {
+        if (program === duplicationProgram) {
+            duplicationScaleFactorValue = parseFloat(event.target.value);
+            duplicationScaleFactorLoc = gl.getUniformLocation(program, "scaleFactor");
+            gl.uniform1f(duplicationScaleFactorLoc, duplicationScaleFactorValue);
+        }
+    });
+    barrelDistortionSlider.addEventListener('input', function (event) {
+        if (program === barrelProgram) {
+            barrelDistortionValue = parseFloat(event.target.value);
+            barrelDistortionLoc = gl.getUniformLocation(program, "distortionFactor");
+            gl.uniform1f(barrelDistortionLoc, barrelDistortionValue);
+        }
+    });
+
+
+    render();
 }
 
 // Capture frame and download as new texture
@@ -279,7 +256,7 @@ function render() {
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // sets texture1 with frame from webcam
+    // Sets texture1 with frame from webcam
     if (video) {
         
         gl.activeTexture(gl.TEXTURE0);

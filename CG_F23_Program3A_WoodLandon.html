@@ -155,10 +155,12 @@ void main() {
     // Normalize texture coordinates to [-1, 1] range
     vec2 normTexCoord = (vTexCoord - 0.5) * 2.0; 
 
+    // Calculate distortion
     float dist = length(normTexCoord);
     vec2 distortion = normTexCoord * (1.0 + distortionFactor * dist * dist);
 
-    vec2 distortedTexCoord = 0.5 * (distortion + 1.0); // Denormalize texture coordinates
+    // Denormalize texture coordinates
+    vec2 distortedTexCoord = 0.5 * (distortion + 1.0); 
 
     vec4 texColor = texture(texturevid, distortedTexCoord);
     fColor = texColor;
@@ -197,5 +199,4 @@ void main() {
 </body>
 
 <script src="../Common/initShaders.js"></script>
-<script type="text/javascript" src="CG_F23_Program3_WoodLandon.js"></script>
-
+<script type="text/javascript" src="CG_F23_Program3A_WoodLandon.js"></script>
